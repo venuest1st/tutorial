@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Canvas JS</title>
+</head>
+<body>
+  <div style="position: relative;">
+    <p id="score" style="position: absolute; top: -20px; left: 0px; font-size: 20px; color: black; padding: 5px; z-index: 1;">Score: 0</p>
+    <canvas id="world" width="500" height="400" style="border: 1px solid black; margin-top: 40px;"></canvas>
+</div>
+
+    <script>
+        let canvas = document.getElementById('world');
+        let context = canvas.getContext('2d');
+
+        let bird = new Image();
+        bird.src = "bird.png";
+
+        let tuing = new Audio();
+        tuing.src = "tuing.mp3";
+        tuing.load();
+
+        let g = 0;
+        let xBird = 0;
+        let yBird = canvas.height / 2 - 100;
+        let minY = 0;
+        let maxY = canvas.height - 50;
+        let wBird = 50;
+        let hBird = 50;
+        let score = 0;
+        let pipes = [];
+        let hitBottom = false;
+
+        window.addEventListener("keydown", function () {
+            if (event.keyCode == 32) {
+                g = -10;
+                tuing.pause();
+                tuing.currentTime = 0;
+                tuing.play();
+            }
+        })
+
+        let lebarPipa = 50;
+        let batasAman = 150;
+        let kecepatanPipa = 2;
+
+        let scoreElement = document.getElementById("score");
+
+        window.setInterval(function () {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            g = g + 1;
+            context.drawImage(bird, xBird, yBird, wBird, hBird);
+            yBird = Math.max(minY, Math.min(maxY, yBird + g));
+
+            if (yBird <= minY) {
+                g = 1;
+            } else if (yBird >= maxY) {
+                if (!hitBottom) {
+                    hitBottom = true;
+                } else {
+                    alert("Game Over");
+                    resetGame();
+                }
+            } else {
+                hitBottom = false;
+            }
+
+            for (let i = 0; i < pipes.length; i++) {
+                pipes[i].x -= kecepatanPipa;
+                context.fillStyle = "green";
+                context.fillRect(pipes[i].x, 0, lebarPipa, pipes[i].tinggiAtas);
+                context.fillStyle = "black";
+                context.strokeRect(pipes[i].x, 0, lebarPipa, pipes[i].tinggiAtas);
+
+                context.fillStyle = 'green';
+                context.fillRect(pipes[i].x, canvas.height - pipes[i].tinggiBawah, lebarPipa, pipes[i].tinggiBawah);
+                context.fillStyle = 'black';
+                context.strokeRect(pipes[i].x, canvas.height - pipes[i].tinggiBawah, lebarPipa, pipes[i].tinggiBawah);
+
+                if (xBird + lebarPipa >= pipes[i].x && xBird <= pipes[i].x + lebarPipa && (yBird <= pipes[i].tinggiAtas || yBird + hBird >= canvas.height - pipes[i].tinggiBawah)) {
+                    alert("Game Over");
+                    resetGame();
+                } else if (xBird + lebarPipa >= pipes[i].x && xBird <= pipes[i].x + lebarPipa && yBird >= pipes[i].tinggiAtas) {
+                    score++;
+                    scoreElement.innerText = "Score: " + score;
+                    if (i === pipes.length - 1) {
+                        createNewSetOfPipes();
+                    }
+                }
+            }
+        }, 1000 / 30);
+
+        function createNewSetOfPipes() {
+            let tinggiAtas = Math.random() * (canvas.height - batasAman);
+            let tinggiBawah = canvas.height - batasAman - tinggiAtas;
+            pipes.push({ x: canvas.width - lebarPipa, tinggiAtas, tinggiBawah });
+        }
+
+        function resetGame() {
+            g = 0;
+            xBird = 0;
+            yBird = canvas.height / 2 - 100;
+            wBird = 50;
+            hBird = 50;
+            score = 0;
+            pipes = [];
+            hitBottom = false;
+            scoreElement.innerText = "Score: " + score;
+            createNewSetOfPipes();
+        }
+    </script>
+</body>
+</html>
+
